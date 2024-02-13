@@ -203,7 +203,8 @@ class Translator(BaseModel):
 
     def respawn_cli(self, **kw):
         self._cli = httpx.AsyncClient(
-            proxy=self.proxy, timeout=self.timeout, **kw)
+            proxy=self.proxy, timeout=self.timeout,
+            trust_env=False, **kw)
 
     @model_validator(mode="after")
     def post_init(self):
