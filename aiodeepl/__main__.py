@@ -37,13 +37,11 @@ async def main() -> int:
     if args.version:
         print(f"aiodeepl {__version__}")
         return 0
-    if args.text is not None and args.file is not None:
-        print("You can't specify both text and file")
-        return 2
-    if args.file is not None and args.output is None:
+    if args.file is None:
+        text = input() if args.text is None else args.text
+    elif args.output is None:
         print("You must specify an output file")
         return 2
-
     config_path = Path(args.config)
     if not config_path.exists():
         print(f"Config file not found at {config_path}")
@@ -61,7 +59,6 @@ async def main() -> int:
     system_proxies = urllib.request.getproxies()
     proxy = system_proxies.get("http", system_proxies.get("https"))
     if proxy:
-        print(f"Using proxy {proxy}")
         translator.proxy = proxy
 
     if args.quota:
@@ -81,8 +78,8 @@ async def main() -> int:
                 f"    {lang.language:5} - {lang.name:10}, supports formality({lang.supports_formality})")
         return 0
 
-    if args.text:
-        res = await translator.translate(args.text, source_lang=args.sauce, target_lang=args.dest)
+    if text:
+        res = await translator.translate(text, source_lang=args.sauce, target_lang=args.dest)
         print(res.text)
     elif args.file:
         def cb(status: FileStatus):
