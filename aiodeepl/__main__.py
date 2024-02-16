@@ -38,7 +38,7 @@ async def main() -> int:
         print(f"aiodeepl {__version__}")
         return 0
     if args.file is None:
-        text = input() if args.text is None else args.text
+        text = sys.stdin.read() if args.text is None else args.text
     elif args.output is None:
         print("You must specify an output file")
         return 2
