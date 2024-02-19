@@ -37,11 +37,7 @@ async def main() -> int:
     if args.version:
         print(f"aiodeepl {__version__}")
         return 0
-    if args.file is None:
-        text = sys.stdin.read() if args.text is None else args.text
-    elif args.output is None:
-        print("You must specify an output file")
-        return 2
+
     config_path = Path(args.config)
     if not config_path.exists():
         print(f"Config file not found at {config_path}")
@@ -71,12 +67,26 @@ async def main() -> int:
         destl = await translator.language_available_get("target")
         print("Source languages:")
         for lang in srcl:
-            print(f"    {lang.language:5} - {lang.name:10}")
+            print(f"\t{lang.language:5} - {lang.name:10}")
         print("\nDestination languages:")
         for lang in destl:
             print(
-                f"    {lang.language:5} - {lang.name:10}, supports formality({lang.supports_formality})")
+                f"\t{lang.language:5} - {lang.name:10}{
+                    f", supports formality"
+                    if lang.supports_formality else ''}")
+        print("\nGlossary pairs:")
+        for i, pair in enumerate(
+                await translator.glossary_available_pairs()):
+            print(f"({pair.source_lang} -> {pair.target_lang})", end=", ")
+            if i % 5 == 4:
+                print()
         return 0
+
+    if args.file is None:
+        text = sys.stdin.read() if args.text is None else args.text
+    elif args.output is None:
+        print("You must specify an output file")
+        return 2
 
     if text:
         res = await translator.translate(text, source_lang=args.sauce, target_lang=args.dest)

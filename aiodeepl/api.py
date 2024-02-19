@@ -12,7 +12,7 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict, model_validator, PrivateAttr
-from pydantic import ValidationError
+from pydantic import ValidationError, field_validator
 from vermils.io import aio
 from . import exc
 
@@ -22,7 +22,7 @@ DEFAULT_PRO_HOST = "api.deepl.com"
 MAX_BODY_BYTES = 128 * 1024  # 128 KiB
 
 
-class Language(Enum):
+class Language(str, Enum):
     AR = "AR"
     """Arabic"""
     BG = "BG"
@@ -103,6 +103,19 @@ class LangInfo(BaseModel):
 class GlossaryPair(BaseModel):
     source_lang: Language | str
     target_lang: Language | str
+
+    @field_validator("source_lang", "target_lang", mode="after")
+    def to_upper(cls, v: str | Language):
+        if isinstance(v, Language):
+            v = v.value
+        return v.upper()
+
+    def __eq__(self, other):
+        if not isinstance(other, GlossaryPair | tuple):
+            return NotImplemented
+        if not isinstance(other, tuple):
+            other = (other.source_lang, other.target_lang)
+        return (self.source_lang, self.target_lang) == other
 
 
 class GlossaryRequest(GlossaryPair):
